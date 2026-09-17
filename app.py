@@ -8,52 +8,477 @@ from calculos import (
     cargar_garantias,
     obtener_completadas,
     obtener_solucionadas,
+    obtener_completadas_de_solucionadas,
     buscar_garantias,
 )
 
 
 # ============================================================
-# CONFIGURACION
+# CONFIGURACIÓN
 # ============================================================
 
 st.set_page_config(
-    page_title="QUIEBRES",
+    page_title="QUIEBRES BFTEL",
     page_icon="📊",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
 
 # ============================================================
-# ESTILO
+# CSS - DISEÑO GENERAL
 # ============================================================
 
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
 
-.block-container {
-    padding-top: 1.5rem;
-    padding-bottom: 2rem;
-}
+    /* -------------------------------------------------------
+       FONDO GENERAL
+    ------------------------------------------------------- */
 
-h1 {
-    font-weight: 800;
-}
+    .stApp {
+        background:
+            linear-gradient(
+                135deg,
+                #f4f7fb 0%,
+                #eef2f7 50%,
+                #f8fafc 100%
+            );
+    }
 
-</style>
-""", unsafe_allow_html=True)
+
+    /* -------------------------------------------------------
+       CONTENEDOR PRINCIPAL
+    ------------------------------------------------------- */
+
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+        max-width: 1500px;
+    }
 
 
-# ============================================================
-# TITULO
-# ============================================================
+    /* -------------------------------------------------------
+       TITULO
+    ------------------------------------------------------- */
 
-st.title("📊 QUIEBRES")
+    .titulo-dashboard {
 
-st.caption(
-    "Análisis operativo de órdenes, completadas, solucionadas y garantías"
+        background:
+            linear-gradient(
+                135deg,
+                #0f172a,
+                #1e293b
+            );
+
+        padding: 28px 35px;
+
+        border-radius: 20px;
+
+        margin-bottom: 25px;
+
+        box-shadow:
+            0 10px 30px rgba(
+                15,
+                23,
+                42,
+                0.15
+            );
+    }
+
+
+    .titulo-dashboard h1 {
+
+        color: white;
+
+        margin: 0;
+
+        font-size: 34px;
+
+        font-weight: 800;
+
+        letter-spacing: 0.5px;
+    }
+
+
+    .titulo-dashboard p {
+
+        color: #cbd5e1;
+
+        margin:
+            7px 0 0 0;
+
+        font-size: 15px;
+    }
+
+
+    /* -------------------------------------------------------
+       TARJETAS KPI
+    ------------------------------------------------------- */
+
+    .kpi-card {
+
+        position: relative;
+
+        background: rgba(
+            255,
+            255,
+            255,
+            0.96
+        );
+
+        border-radius: 18px;
+
+        padding: 22px 24px;
+
+        min-height: 145px;
+
+        border:
+            1px solid
+            rgba(
+                226,
+                232,
+                240,
+                0.9
+            );
+
+        box-shadow:
+            0 8px 25px
+            rgba(
+                15,
+                23,
+                42,
+                0.08
+            );
+
+        overflow: hidden;
+
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+
+    .kpi-card:hover {
+
+        transform:
+            translateY(-3px);
+
+        box-shadow:
+            0 14px 35px
+            rgba(
+                15,
+                23,
+                42,
+                0.13
+            );
+    }
+
+
+    .kpi-card::before {
+
+        content: "";
+
+        position: absolute;
+
+        left: 0;
+
+        top: 0;
+
+        bottom: 0;
+
+        width: 5px;
+
+        background:
+            linear-gradient(
+                180deg,
+                #2563eb,
+                #0ea5e9
+            );
+    }
+
+
+    .kpi-title {
+
+        font-size: 13px;
+
+        color: #64748b;
+
+        font-weight: 700;
+
+        text-transform: uppercase;
+
+        letter-spacing: 0.5px;
+
+        margin-bottom: 10px;
+    }
+
+
+    .kpi-value {
+
+        font-size: 34px;
+
+        color: #0f172a;
+
+        font-weight: 800;
+
+        line-height: 1.1;
+    }
+
+
+    .kpi-description {
+
+        margin-top: 9px;
+
+        font-size: 12px;
+
+        color: #94a3b8;
+    }
+
+
+    /* -------------------------------------------------------
+       TARJETA COMPLETADAS
+    ------------------------------------------------------- */
+
+    .kpi-completadas::before {
+
+        background:
+            linear-gradient(
+                180deg,
+                #2563eb,
+                #3b82f6
+            );
+    }
+
+
+    /* -------------------------------------------------------
+       TARJETA SOLUCIONADAS
+    ------------------------------------------------------- */
+
+    .kpi-solucionadas::before {
+
+        background:
+            linear-gradient(
+                180deg,
+                #16a34a,
+                #22c55e
+            );
+    }
+
+
+    /* -------------------------------------------------------
+       TARJETA CTA
+    ------------------------------------------------------- */
+
+    .kpi-cta::before {
+
+        background:
+            linear-gradient(
+                180deg,
+                #f59e0b,
+                #f97316
+            );
+    }
+
+
+    /* -------------------------------------------------------
+       TARJETA PORCENTAJE
+    ------------------------------------------------------- */
+
+    .kpi-porcentaje::before {
+
+        background:
+            linear-gradient(
+                180deg,
+                #7c3aed,
+                #a855f7
+            );
+    }
+
+
+    /* -------------------------------------------------------
+       SECCIONES
+    ------------------------------------------------------- */
+
+    .section-title {
+
+        background: white;
+
+        padding:
+            15px 20px;
+
+        border-radius: 14px;
+
+        border:
+            1px solid
+            #e2e8f0;
+
+        box-shadow:
+            0 4px 15px
+            rgba(
+                15,
+                23,
+                42,
+                0.05
+            );
+
+        margin-top: 25px;
+
+        margin-bottom: 15px;
+
+        font-size: 18px;
+
+        font-weight: 800;
+
+        color: #0f172a;
+    }
+
+
+    /* -------------------------------------------------------
+       FILTROS
+    ------------------------------------------------------- */
+
+    .filter-container {
+
+        background: white;
+
+        padding: 20px;
+
+        border-radius: 16px;
+
+        border:
+            1px solid
+            #e2e8f0;
+
+        box-shadow:
+            0 5px 18px
+            rgba(
+                15,
+                23,
+                42,
+                0.06
+            );
+
+        margin-bottom: 20px;
+    }
+
+
+    /* -------------------------------------------------------
+       METRICAS DE STREAMLIT
+    ------------------------------------------------------- */
+
+    [data-testid="stMetric"] {
+
+        background: white;
+
+        padding: 15px;
+
+        border-radius: 12px;
+    }
+
+
+    /* -------------------------------------------------------
+       DATAFRAME
+    ------------------------------------------------------- */
+
+    [data-testid="stDataFrame"] {
+
+        border-radius: 14px;
+
+        overflow: hidden;
+
+        box-shadow:
+            0 5px 18px
+            rgba(
+                15,
+                23,
+                42,
+                0.06
+            );
+    }
+
+
+    /* -------------------------------------------------------
+       BOTONES
+    ------------------------------------------------------- */
+
+    .stButton > button {
+
+        border-radius: 10px;
+
+        font-weight: 700;
+    }
+
+
+    /* -------------------------------------------------------
+       FOOTER
+    ------------------------------------------------------- */
+
+    .footer {
+
+        margin-top: 35px;
+
+        padding: 18px;
+
+        text-align: center;
+
+        color: #64748b;
+
+        font-size: 12px;
+    }
+
+
+    /* -------------------------------------------------------
+       RESPONSIVE
+    ------------------------------------------------------- */
+
+    @media (
+        max-width: 768px
+    ) {
+
+        .titulo-dashboard h1 {
+
+            font-size: 25px;
+        }
+
+        .kpi-value {
+
+            font-size: 28px;
+        }
+
+        .kpi-card {
+
+            margin-bottom: 12px;
+        }
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 
-st.divider()
+
+# ============================================================
+# ENCABEZADO
+# ============================================================
+
+st.markdown(
+    """
+    <div class="titulo-dashboard">
+
+        <h1>📊 QUIEBRES</h1>
+
+        <p>
+            Dashboard operativo BFTEL ·
+            Análisis de órdenes, solucionadas,
+            completadas y garantías
+        </p>
+
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ============================================================
@@ -64,19 +489,31 @@ st.divider()
 def cargar_datos():
 
     cuadrillas = preparar_cuadrillas()
+
     suspensiones = cargar_suspensiones()
+
     garantias = cargar_garantias()
 
-    return cuadrillas, suspensiones, garantias
+    return (
+        cuadrillas,
+        suspensiones,
+        garantias
+    )
 
 
 try:
 
-    cuadrillas, suspensiones, garantias = cargar_datos()
+    (
+        cuadrillas,
+        suspensiones,
+        garantias
+    ) = cargar_datos()
 
 except Exception as e:
 
-    st.error("❌ Error cargando los archivos.")
+    st.error(
+        "❌ Error cargando los archivos."
+    )
 
     st.exception(e)
 
@@ -87,14 +524,18 @@ except Exception as e:
 # FILTROS
 # ============================================================
 
-st.subheader("🔎 Filtros")
+st.markdown(
+    '<div class="section-title">🔎 Filtros de análisis</div>',
+    unsafe_allow_html=True
+)
+
 
 col1, col2, col3 = st.columns(3)
 
 
-# ------------------------------------------------------------
+# ============================================================
 # MES
-# ------------------------------------------------------------
+# ============================================================
 
 with col1:
 
@@ -104,22 +545,28 @@ with col1:
     )
 
 
-# ------------------------------------------------------------
-# ALIADO
-# ------------------------------------------------------------
+# ============================================================
+# PROVEEDOR
+# ============================================================
 
 with col2:
 
     lista_aliados = sorted(
         [
             str(x).strip()
-            for x in cuadrillas["PROVEEDOR SUSPENDIO"]
-            .dropna()
+            for x in
+            cuadrillas[
+                "PROVEEDOR SUSPENDIO"
+            ].dropna()
             if str(x).strip()
         ]
     )
 
-    lista_aliados = list(dict.fromkeys(lista_aliados))
+    lista_aliados = list(
+        dict.fromkeys(
+            lista_aliados
+        )
+    )
 
     aliado = st.selectbox(
         "ALIADO / PROVEEDOR QUE SUSPENDIÓ",
@@ -127,22 +574,28 @@ with col2:
     )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # TECNICO
-# ------------------------------------------------------------
+# ============================================================
 
 with col3:
 
     lista_tecnicos = sorted(
         [
             str(x).strip()
-            for x in cuadrillas["TECNICO"]
-            .dropna()
+            for x in
+            cuadrillas[
+                "TECNICO"
+            ].dropna()
             if str(x).strip()
         ]
     )
 
-    lista_tecnicos = list(dict.fromkeys(lista_tecnicos))
+    lista_tecnicos = list(
+        dict.fromkeys(
+            lista_tecnicos
+        )
+    )
 
     tecnico = st.selectbox(
         "TÉCNICO",
@@ -161,6 +614,11 @@ completadas = obtener_completadas(
 )
 
 
+total_completadas = len(
+    completadas
+)
+
+
 # ============================================================
 # FILTRAR CUADRILLAS
 # ============================================================
@@ -171,16 +629,18 @@ cuad_filtradas = cuadrillas.copy()
 if aliado != "Todos":
 
     cuad_filtradas = cuad_filtradas[
-        cuad_filtradas["PROVEEDOR SUSPENDIO"]
-        == aliado
+        cuad_filtradas[
+            "PROVEEDOR SUSPENDIO"
+        ] == aliado
     ]
 
 
 if tecnico != "Todos":
 
     cuad_filtradas = cuad_filtradas[
-        cuad_filtradas["TECNICO"]
-        == tecnico
+        cuad_filtradas[
+            "TECNICO"
+        ] == tecnico
     ]
 
 
@@ -193,19 +653,36 @@ solucionadas = obtener_solucionadas(
 )
 
 
+total_solucionadas = len(
+    solucionadas
+)
+
+
 # ============================================================
-# INDICADORES
+# COMPLETADAS DE SOLUCIONADAS
 # ============================================================
 
-total_completadas = len(completadas)
+completadas_solucionadas = (
+    obtener_completadas_de_solucionadas(
+        solucionadas
+    )
+)
 
-total_solucionadas = len(solucionadas)
 
+total_completadas_solucionadas = len(
+    completadas_solucionadas
+)
+
+
+# ============================================================
+# PORCENTAJE
+# ============================================================
 
 if total_completadas > 0:
 
     porcentaje_solucion = (
-        total_solucionadas /
+        total_completadas_solucionadas
+        /
         total_completadas
     ) * 100
 
@@ -214,78 +691,218 @@ else:
     porcentaje_solucion = 0
 
 
-st.subheader("📌 Indicadores principales")
+# ============================================================
+# INDICADORES
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">📌 Indicadores principales</div>',
+    unsafe_allow_html=True
+)
+
 
 c1, c2, c3, c4 = st.columns(4)
 
 
-c1.metric(
-    "COMPLETADAS",
-    f"{total_completadas:,}"
+# ============================================================
+# TARJETA 1
+# ============================================================
+
+with c1:
+
+    st.markdown(
+        f"""
+        <div class="kpi-card kpi-completadas">
+
+            <div class="kpi-title">
+                Completadas
+            </div>
+
+            <div class="kpi-value">
+                {total_completadas:,}
+            </div>
+
+            <div class="kpi-description">
+                Universo mensual
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# ============================================================
+# TARJETA 2
+# ============================================================
+
+with c2:
+
+    st.markdown(
+        f"""
+        <div class="kpi-card kpi-solucionadas">
+
+            <div class="kpi-title">
+                Solucionadas
+            </div>
+
+            <div class="kpi-value">
+                {total_solucionadas:,}
+            </div>
+
+            <div class="kpi-description">
+                Resultado SOLUCIONADA
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# ============================================================
+# TARJETA 3
+# ============================================================
+
+with c3:
+
+    st.markdown(
+        f"""
+        <div class="kpi-card kpi-cta">
+
+            <div class="kpi-title">
+                Completadas de solucionadas
+            </div>
+
+            <div class="kpi-value">
+                {total_completadas_solucionadas:,}
+            </div>
+
+            <div class="kpi-description">
+                CTA COMPLETO = SI
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# ============================================================
+# TARJETA 4
+# ============================================================
+
+with c4:
+
+    st.markdown(
+        f"""
+        <div class="kpi-card kpi-porcentaje">
+
+            <div class="kpi-title">
+                Aporte a completadas
+            </div>
+
+            <div class="kpi-value">
+                {porcentaje_solucion:.2f}%
+            </div>
+
+            <div class="kpi-description">
+                Sobre {total_completadas:,} completadas
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# ============================================================
+# SEGUNDO BLOQUE
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">📊 Universo de CUADRILLAS</div>',
+    unsafe_allow_html=True
 )
 
 
-c2.metric(
-    "SOLUCIONADAS",
-    f"{total_solucionadas:,}"
-)
+q1, q2, q3 = st.columns(3)
 
 
-c3.metric(
-    "% SOLUCIONADAS",
-    f"{porcentaje_solucion:.2f}%"
-)
-
-
-c4.metric(
+q1.metric(
     "ÓRDENES CUADRILLAS",
     f"{len(cuad_filtradas):,}"
 )
 
 
-st.divider()
-
-
-# ============================================================
-# COMPLETADAS VS SOLUCIONADAS
-# ============================================================
-
-st.subheader(
-    "📊 Completadas vs Solucionadas"
+q2.metric(
+    "SOLUCIONADAS",
+    f"{total_solucionadas:,}"
 )
 
 
-df_resumen = pd.DataFrame({
-
-    "Tipo": [
-        "Completadas",
-        "Solucionadas"
-    ],
-
-    "Cantidad": [
-        total_completadas,
-        total_solucionadas
-    ]
-
-})
+q3.metric(
+    "NO COMPLETADAS",
+    f"{total_solucionadas - total_completadas_solucionadas:,}"
+)
 
 
-fig = px.bar(
+# ============================================================
+# GRÁFICO PRINCIPAL
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">📈 Completadas vs aporte de solucionadas</div>',
+    unsafe_allow_html=True
+)
+
+
+df_resumen = pd.DataFrame(
+    {
+        "Tipo": [
+            "Completadas",
+            "Completadas de solucionadas"
+        ],
+
+        "Cantidad": [
+            total_completadas,
+            total_completadas_solucionadas
+        ]
+    }
+)
+
+
+fig_resumen = px.bar(
     df_resumen,
     x="Tipo",
     y="Cantidad",
     text="Cantidad",
-    title="Órdenes completadas y solucionadas"
+    title=""
 )
 
 
-fig.update_traces(
+fig_resumen.update_traces(
     textposition="outside"
 )
 
 
+fig_resumen.update_layout(
+    plot_bgcolor="rgba(0,0,0,0)",
+    paper_bgcolor="rgba(0,0,0,0)",
+    margin=dict(
+        l=20,
+        r=20,
+        t=20,
+        b=20
+    ),
+    font=dict(
+        color="#334155"
+    )
+)
+
+
 st.plotly_chart(
-    fig,
+    fig_resumen,
     width="stretch"
 )
 
@@ -294,8 +911,9 @@ st.plotly_chart(
 # RESULTADOS
 # ============================================================
 
-st.subheader(
-    "📊 Estados / Resultados"
+st.markdown(
+    '<div class="section-title">📊 Estados / Resultados de CUADRILLAS</div>',
+    unsafe_allow_html=True
 )
 
 
@@ -303,7 +921,10 @@ df_resultados = (
     cuad_filtradas[
         "RESULTADO_NORMALIZADO"
     ]
-    .replace("", "SIN RESULTADO")
+    .replace(
+        "",
+        "SIN RESULTADO"
+    )
     .value_counts()
     .reset_index()
 )
@@ -321,8 +942,18 @@ if not df_resultados.empty:
         df_resultados,
         names="Resultado",
         values="Cantidad",
-        hole=0.45,
-        title="Distribución de resultados"
+        hole=0.5
+    )
+
+    fig_resultados.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(
+            l=20,
+            r=20,
+            t=30,
+            b=20
+        )
     )
 
     st.plotly_chart(
@@ -332,11 +963,12 @@ if not df_resultados.empty:
 
 
 # ============================================================
-# PROVEEDOR
+# PROVEEDORES
 # ============================================================
 
-st.subheader(
-    "🤝 Órdenes por proveedor que suspendió"
+st.markdown(
+    '<div class="section-title">🤝 Órdenes por proveedor que suspendió</div>',
+    unsafe_allow_html=True
 )
 
 
@@ -344,7 +976,10 @@ df_proveedores = (
     cuad_filtradas[
         "PROVEEDOR SUSPENDIO"
     ]
-    .replace("", "SIN PROVEEDOR")
+    .replace(
+        "",
+        "SIN PROVEEDOR"
+    )
     .value_counts()
     .reset_index()
 )
@@ -362,12 +997,22 @@ if not df_proveedores.empty:
         df_proveedores,
         x="Proveedor",
         y="Cantidad",
-        text="Cantidad",
-        title="Órdenes por proveedor"
+        text="Cantidad"
     )
 
     fig_proveedores.update_traces(
         textposition="outside"
+    )
+
+    fig_proveedores.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(
+            l=20,
+            r=20,
+            t=30,
+            b=20
+        )
     )
 
     st.plotly_chart(
@@ -380,27 +1025,31 @@ if not df_proveedores.empty:
 # GARANTIAS
 # ============================================================
 
-st.subheader(
-    "🛠️ Garantías dentro de los 60 días"
+st.markdown(
+    '<div class="section-title">🛠️ Garantías dentro de los 60 días</div>',
+    unsafe_allow_html=True
 )
 
 
 datos_garantia = buscar_garantias(
-    solucionadas,
+    completadas_solucionadas,
     garantias
 )
 
 
 total_garantias = int(
-    datos_garantia["TIENE_GARANTIA"].sum()
+    datos_garantia[
+        "TIENE_GARANTIA"
+    ].sum()
 )
 
 
-if total_solucionadas > 0:
+if total_completadas_solucionadas > 0:
 
     porcentaje_garantia = (
-        total_garantias /
-        total_solucionadas
+        total_garantias
+        /
+        total_completadas_solucionadas
     ) * 100
 
 else:
@@ -427,9 +1076,14 @@ g2.metric(
 # TABLA GARANTIAS
 # ============================================================
 
-garantias_encontradas = datos_garantia[
-    datos_garantia["TIENE_GARANTIA"]
-].copy()
+garantias_encontradas = (
+    datos_garantia[
+        datos_garantia[
+            "TIENE_GARANTIA"
+        ]
+    ]
+    .copy()
+)
 
 
 if not garantias_encontradas.empty:
@@ -469,8 +1123,9 @@ else:
 # TABLA PRINCIPAL
 # ============================================================
 
-st.subheader(
-    "📋 Detalle de órdenes solucionadas"
+st.markdown(
+    '<div class="section-title">📋 Detalle de órdenes solucionadas</div>',
+    unsafe_allow_html=True
 )
 
 
@@ -509,8 +1164,13 @@ st.dataframe(
 # PIE
 # ============================================================
 
-st.divider()
+st.markdown(
+    """
+    <div class="footer">
 
-st.caption(
-    "QUIEBRES | Dashboard operativo BFTEL"
+        QUIEBRES · Dashboard operativo BFTEL
+
+    </div>
+    """,
+    unsafe_allow_html=True
 )
