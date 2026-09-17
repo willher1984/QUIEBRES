@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from pathlib import Path
 from io import BytesIO
 
 from calculos import (
@@ -34,10 +33,6 @@ st.markdown(
     """
     <style>
 
-    /* =====================================================
-       FONDO GENERAL
-       ===================================================== */
-
     .stApp {
         background:
             linear-gradient(
@@ -48,21 +43,11 @@ st.markdown(
         background-attachment: fixed;
     }
 
-
-    /* =====================================================
-       CONTENEDOR PRINCIPAL
-       ===================================================== */
-
     .block-container {
         padding-top: 1.5rem;
         padding-bottom: 3rem;
         max-width: 1500px;
     }
-
-
-    /* =====================================================
-       TITULO
-       ===================================================== */
 
     .titulo-principal {
         font-size: 42px;
@@ -80,11 +65,6 @@ st.markdown(
         margin-bottom: 30px;
     }
 
-
-    /* =====================================================
-       TARJETAS KPI
-       ===================================================== */
-
     .kpi-card {
         background: linear-gradient(
             145deg,
@@ -93,11 +73,8 @@ st.markdown(
         );
 
         border: 1px solid rgba(255,255,255,0.16);
-
         border-radius: 18px;
-
         padding: 22px 20px;
-
         min-height: 145px;
 
         box-shadow:
@@ -105,10 +82,8 @@ st.markdown(
             inset 0 1px 0 rgba(255,255,255,0.08);
 
         backdrop-filter: blur(12px);
-
         margin-bottom: 15px;
     }
-
 
     .kpi-titulo {
         color: #b9c8d8;
@@ -119,7 +94,6 @@ st.markdown(
         margin-bottom: 12px;
     }
 
-
     .kpi-valor {
         color: white;
         font-size: 35px;
@@ -127,17 +101,11 @@ st.markdown(
         line-height: 1.1;
     }
 
-
     .kpi-descripcion {
         color: #91a5bb;
         font-size: 13px;
         margin-top: 8px;
     }
-
-
-    /* =====================================================
-       TITULOS DE SECCIÓN
-       ===================================================== */
 
     .seccion {
         color: white;
@@ -149,11 +117,6 @@ st.markdown(
         border-bottom: 1px solid rgba(255,255,255,0.12);
     }
 
-
-    /* =====================================================
-       FILTROS
-       ===================================================== */
-
     [data-testid="stSidebar"] {
         background: linear-gradient(
             180deg,
@@ -162,15 +125,9 @@ st.markdown(
         );
     }
 
-
     [data-testid="stSidebar"] * {
         color: white;
     }
-
-
-    /* =====================================================
-       MÉTRICAS NATIVAS
-       ===================================================== */
 
     [data-testid="stMetric"] {
         background: rgba(255,255,255,0.07);
@@ -179,35 +136,19 @@ st.markdown(
         border-radius: 15px;
     }
 
-
-    /* =====================================================
-       TABLAS
-       ===================================================== */
-
     [data-testid="stDataFrame"] {
         border-radius: 12px;
         overflow: hidden;
     }
-
-
-    /* =====================================================
-       BOTONES
-       ===================================================== */
 
     .stButton > button {
         border-radius: 10px;
         border: 1px solid rgba(255,255,255,0.15);
     }
 
-
-    /* =====================================================
-       TEXTO
-       ===================================================== */
-
     p, label {
         color: #dbe7f3;
     }
-
 
     </style>
     """,
@@ -425,7 +366,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
 col1, col2, col3, col4 = st.columns(4)
 
 
@@ -526,11 +466,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
 c1, c2, c3 = st.columns(3)
 
 
 with c1:
+
     st.metric(
         "Registros CUADRILLAS",
         f"{len(cuad_filtradas):,}"
@@ -538,6 +478,7 @@ with c1:
 
 
 with c2:
+
     st.metric(
         "Solucionadas",
         f"{len(solucionadas):,}"
@@ -565,7 +506,6 @@ st.markdown(
     '<div class="seccion">📈 Completadas vs solucionadas</div>',
     unsafe_allow_html=True
 )
-
 
 df_comparacion = pd.DataFrame(
     {
@@ -717,317 +657,295 @@ if "PROVEEDOR SUSPENDIO" in cuad_filtradas.columns:
 
 
 # ============================================================
-# DETALLE DE SOLUCIONADAS
+# TABLA COMPLETA DE CUADRILLAS
 # ============================================================
 
 st.markdown(
-    '<div class="seccion">🔎 Detalle de órdenes solucionadas</div>',
+    '<div class="seccion">🔎 Detalle completo de CUADRILLAS</div>',
     unsafe_allow_html=True
 )
 
 
-if not solucionadas.empty:
+# ============================================================
+# FILTROS EXCLUSIVOS DE LA TABLA
+# ============================================================
 
-    # ========================================================
-    # FILTROS DEL DETALLE
-    # ========================================================
-
-    st.markdown("#### 🔎 Filtrar detalle de órdenes")
-
-    f1, f2, f3, f4, f5 = st.columns(5)
-
-
-    detalle_filtrado = solucionadas.copy()
+st.markdown(
+    "#### 🔍 Filtros de la tabla",
+    unsafe_allow_html=True
+)
 
 
-    # --------------------------------------------------------
-    # PROVEEDOR
-    # --------------------------------------------------------
+tabla_filtrada = cuad_filtradas.copy()
 
-    if "PROVEEDOR SUSPENDIO" in detalle_filtrado.columns:
 
-        opciones_proveedor_detalle = ["TODOS"] + sorted(
-            detalle_filtrado[
-                "PROVEEDOR SUSPENDIO"
-            ]
-            .fillna("SIN PROVEEDOR")
-            .astype(str)
-            .str.strip()
-            .unique()
-            .tolist()
+f1, f2, f3, f4, f5 = st.columns(5)
+
+
+# ------------------------------------------------------------
+# FILTRO RESULTADO
+# ------------------------------------------------------------
+
+if "RESULTADO" in tabla_filtrada.columns:
+
+    opciones_resultado = ["TODOS"] + sorted(
+        tabla_filtrada["RESULTADO"]
+        .fillna("SIN RESULTADO")
+        .astype(str)
+        .str.strip()
+        .unique()
+        .tolist()
+    )
+
+    with f1:
+
+        filtro_resultado = st.selectbox(
+            "Resultado",
+            opciones_resultado,
+            key="tabla_resultado"
         )
 
-        with f1:
+    if filtro_resultado != "TODOS":
 
-            filtro_proveedor = st.selectbox(
-                "Proveedor",
-                opciones_proveedor_detalle,
-                key="detalle_proveedor"
-            )
-
-        if filtro_proveedor != "TODOS":
-
-            detalle_filtrado = detalle_filtrado[
-                detalle_filtrado[
-                    "PROVEEDOR SUSPENDIO"
-                ]
-                .fillna("SIN PROVEEDOR")
-                .astype(str)
-                .str.strip()
-                == filtro_proveedor
-            ]
-
-
-    # --------------------------------------------------------
-    # TECNICO
-    # --------------------------------------------------------
-
-    if "TECNICO" in detalle_filtrado.columns:
-
-        opciones_tecnico_detalle = ["TODOS"] + sorted(
-            detalle_filtrado[
-                "TECNICO"
-            ]
-            .fillna("SIN TECNICO")
+        tabla_filtrada = tabla_filtrada[
+            tabla_filtrada["RESULTADO"]
+            .fillna("SIN RESULTADO")
             .astype(str)
             .str.strip()
-            .unique()
-            .tolist()
+            == filtro_resultado
+        ]
+
+
+# ------------------------------------------------------------
+# FILTRO CTA COMPLETO
+# ------------------------------------------------------------
+
+if "CTA COMPLETO" in tabla_filtrada.columns:
+
+    opciones_cta = ["TODOS"] + sorted(
+        tabla_filtrada["CTA COMPLETO"]
+        .fillna("SIN DATO")
+        .astype(str)
+        .str.strip()
+        .unique()
+        .tolist()
+    )
+
+    with f2:
+
+        filtro_cta = st.selectbox(
+            "CTA COMPLETO",
+            opciones_cta,
+            key="tabla_cta"
         )
 
-        with f2:
+    if filtro_cta != "TODOS":
 
-            filtro_tecnico = st.selectbox(
-                "Técnico",
-                opciones_tecnico_detalle,
-                key="detalle_tecnico"
-            )
-
-        if filtro_tecnico != "TODOS":
-
-            detalle_filtrado = detalle_filtrado[
-                detalle_filtrado[
-                    "TECNICO"
-                ]
-                .fillna("SIN TECNICO")
-                .astype(str)
-                .str.strip()
-                == filtro_tecnico
-            ]
-
-
-    # --------------------------------------------------------
-    # CTA COMPLETO
-    # --------------------------------------------------------
-
-    if "CTA COMPLETO" in detalle_filtrado.columns:
-
-        opciones_cta = ["TODOS"] + sorted(
-            detalle_filtrado[
-                "CTA COMPLETO"
-            ]
+        tabla_filtrada = tabla_filtrada[
+            tabla_filtrada["CTA COMPLETO"]
             .fillna("SIN DATO")
             .astype(str)
             .str.strip()
-            .unique()
-            .tolist()
+            == filtro_cta
+        ]
+
+
+# ------------------------------------------------------------
+# FILTRO NODO
+# ------------------------------------------------------------
+
+if "NODO" in tabla_filtrada.columns:
+
+    opciones_nodo = ["TODOS"] + sorted(
+        tabla_filtrada["NODO"]
+        .fillna("SIN NODO")
+        .astype(str)
+        .str.strip()
+        .unique()
+        .tolist()
+    )
+
+    with f3:
+
+        filtro_nodo = st.selectbox(
+            "Nodo",
+            opciones_nodo,
+            key="tabla_nodo"
         )
 
-        with f3:
+    if filtro_nodo != "TODOS":
 
-            filtro_cta = st.selectbox(
-                "CTA COMPLETO",
-                opciones_cta,
-                key="detalle_cta"
-            )
-
-        if filtro_cta != "TODOS":
-
-            detalle_filtrado = detalle_filtrado[
-                detalle_filtrado[
-                    "CTA COMPLETO"
-                ]
-                .fillna("SIN DATO")
-                .astype(str)
-                .str.strip()
-                == filtro_cta
-            ]
-
-
-    # --------------------------------------------------------
-    # NODO
-    # --------------------------------------------------------
-
-    if "NODO" in detalle_filtrado.columns:
-
-        opciones_nodo = ["TODOS"] + sorted(
-            detalle_filtrado[
-                "NODO"
-            ]
+        tabla_filtrada = tabla_filtrada[
+            tabla_filtrada["NODO"]
             .fillna("SIN NODO")
             .astype(str)
             .str.strip()
-            .unique()
-            .tolist()
+            == filtro_nodo
+        ]
+
+
+# ------------------------------------------------------------
+# FILTRO TIPO VEHÍCULO
+# ------------------------------------------------------------
+
+if "TIPO VEHICULO" in tabla_filtrada.columns:
+
+    opciones_vehiculo = ["TODOS"] + sorted(
+        tabla_filtrada["TIPO VEHICULO"]
+        .fillna("SIN DATO")
+        .astype(str)
+        .str.strip()
+        .unique()
+        .tolist()
+    )
+
+    with f4:
+
+        filtro_vehiculo = st.selectbox(
+            "Tipo vehículo",
+            opciones_vehiculo,
+            key="tabla_vehiculo"
         )
 
-        with f4:
+    if filtro_vehiculo != "TODOS":
 
-            filtro_nodo = st.selectbox(
-                "Nodo",
-                opciones_nodo,
-                key="detalle_nodo"
-            )
-
-        if filtro_nodo != "TODOS":
-
-            detalle_filtrado = detalle_filtrado[
-                detalle_filtrado[
-                    "NODO"
-                ]
-                .fillna("SIN NODO")
-                .astype(str)
-                .str.strip()
-                == filtro_nodo
-            ]
-
-
-    # --------------------------------------------------------
-    # TIPO VEHICULO
-    # --------------------------------------------------------
-
-    if "TIPO VEHICULO" in detalle_filtrado.columns:
-
-        opciones_vehiculo = ["TODOS"] + sorted(
-            detalle_filtrado[
-                "TIPO VEHICULO"
-            ]
+        tabla_filtrada = tabla_filtrada[
+            tabla_filtrada["TIPO VEHICULO"]
             .fillna("SIN DATO")
             .astype(str)
             .str.strip()
-            .unique()
-            .tolist()
+            == filtro_vehiculo
+        ]
+
+
+# ------------------------------------------------------------
+# FILTRO CÓDIGO
+# ------------------------------------------------------------
+
+if "CODIGO" in tabla_filtrada.columns:
+
+    opciones_codigo = ["TODOS"] + sorted(
+        tabla_filtrada["CODIGO"]
+        .fillna("SIN CODIGO")
+        .astype(str)
+        .str.strip()
+        .unique()
+        .tolist()
+    )
+
+    with f5:
+
+        filtro_codigo = st.selectbox(
+            "Código",
+            opciones_codigo,
+            key="tabla_codigo"
         )
 
-        with f5:
+    if filtro_codigo != "TODOS":
 
-            filtro_vehiculo = st.selectbox(
-                "Tipo vehículo",
-                opciones_vehiculo,
-                key="detalle_vehiculo"
-            )
-
-        if filtro_vehiculo != "TODOS":
-
-            detalle_filtrado = detalle_filtrado[
-                detalle_filtrado[
-                    "TIPO VEHICULO"
-                ]
-                .fillna("SIN DATO")
-                .astype(str)
-                .str.strip()
-                == filtro_vehiculo
-            ]
+        tabla_filtrada = tabla_filtrada[
+            tabla_filtrada["CODIGO"]
+            .fillna("SIN CODIGO")
+            .astype(str)
+            .str.strip()
+            == filtro_codigo
+        ]
 
 
-    # ========================================================
-    # INFORMACIÓN DE LA TABLA
-    # ========================================================
+# ============================================================
+# TODAS LAS COLUMNAS ORIGINALES
+# ============================================================
 
-    st.markdown(
-        f"""
-        <div style="
-            color:#b8c7d9;
-            font-size:14px;
-            margin:10px 0 10px 0;
-        ">
-            Registros encontrados: 
-            <strong style="color:white;">
-                {len(detalle_filtrado):,}
-            </strong>
-            &nbsp; | &nbsp;
-            Columnas:
-            <strong style="color:white;">
-                {len(detalle_filtrado.columns):,}
-            </strong>
-        </div>
-        """,
-        unsafe_allow_html=True
+columnas_auxiliares = [
+    "CTA_COMPLETO_SI",
+    "RESULTADO_NORMALIZADO",
+    "MDM_FIBRA"
+]
+
+
+columnas_originales = [
+    c for c in tabla_filtrada.columns
+    if c not in columnas_auxiliares
+]
+
+
+tabla_final = tabla_filtrada[
+    columnas_originales
+].copy()
+
+
+# ============================================================
+# INFORMACIÓN DE LA TABLA
+# ============================================================
+
+st.markdown(
+    f"""
+    <div style="
+        color:#b8c7d9;
+        font-size:14px;
+        margin:10px 0 10px 0;
+    ">
+        Registros mostrados:
+        <strong style="color:white;">
+            {len(tabla_final):,}
+        </strong>
+
+        &nbsp; | &nbsp;
+
+        Columnas:
+        <strong style="color:white;">
+            {len(tabla_final.columns):,}
+        </strong>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# ============================================================
+# TABLA
+# ============================================================
+
+st.dataframe(
+    tabla_final,
+    width="stretch",
+    height=600,
+    hide_index=True
+)
+
+
+# ============================================================
+# DESCARGAR TABLA FILTRADA
+# ============================================================
+
+buffer_excel = BytesIO()
+
+
+with pd.ExcelWriter(
+    buffer_excel,
+    engine="openpyxl"
+) as writer:
+
+    tabla_final.to_excel(
+        writer,
+        index=False,
+        sheet_name="CUADRILLAS FILTRADAS"
     )
 
 
-    # ========================================================
-    # TODAS LAS COLUMNAS ORIGINALES
-    # ========================================================
-
-    columnas_auxiliares = [
-        "CTA_COMPLETO_SI",
-        "RESULTADO_NORMALIZADO",
-        "MDM_FIBRA"
-    ]
+buffer_excel.seek(0)
 
 
-    columnas_originales = [
-        c for c in detalle_filtrado.columns
-        if c not in columnas_auxiliares
-    ]
-
-
-    tabla_detalle = detalle_filtrado[
-        columnas_originales
-    ].copy()
-
-
-    # ========================================================
-    # TABLA COMPLETA
-    # ========================================================
-
-    st.dataframe(
-        tabla_detalle,
-        width="stretch",
-        height=600,
-        hide_index=True
-    )
-
-
-    # ========================================================
-    # DESCARGA EXCEL
-    # ========================================================
-
-    buffer_excel = BytesIO()
-
-    with pd.ExcelWriter(
-        buffer_excel,
-        engine="openpyxl"
-    ) as writer:
-
-        tabla_detalle.to_excel(
-            writer,
-            index=False,
-            sheet_name="ORDENES SOLUCIONADAS"
-        )
-
-
-    buffer_excel.seek(0)
-
-
-    st.download_button(
-        label="📥 Descargar órdenes solucionadas",
-        data=buffer_excel,
-        file_name="ORDENES_SOLUCIONADAS_AGOSTO_2026.xlsx",
-        mime=(
-            "application/vnd.openxmlformats-officedocument."
-            "spreadsheetml.sheet"
-        ),
-        width="stretch"
-    )
-
-
-else:
-
-    st.info(
-        "No existen órdenes solucionadas con los filtros seleccionados."
-    )
+st.download_button(
+    label="📥 Descargar tabla filtrada en Excel",
+    data=buffer_excel,
+    file_name="CUADRILLAS_FILTRADAS_AGOSTO_2026.xlsx",
+    mime=(
+        "application/vnd.openxmlformats-officedocument."
+        "spreadsheetml.sheet"
+    ),
+    width="stretch"
+)
 
 
 # ============================================================
