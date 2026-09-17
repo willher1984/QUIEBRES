@@ -369,11 +369,16 @@ st.markdown(
 col1, col2, col3, col4 = st.columns(4)
 
 
+# ------------------------------------------------------------
+# TARJETA 1
+# ------------------------------------------------------------
+
 with col1:
 
     st.markdown(
         f"""
         <div class="kpi-card">
+
             <div class="kpi-titulo">
                 Órdenes completadas
             </div>
@@ -385,17 +390,23 @@ with col1:
             <div class="kpi-descripcion">
                 Universo mensual
             </div>
+
         </div>
         """,
         unsafe_allow_html=True
     )
 
 
+# ------------------------------------------------------------
+# TARJETA 2
+# ------------------------------------------------------------
+
 with col2:
 
     st.markdown(
         f"""
         <div class="kpi-card">
+
             <div class="kpi-titulo">
                 Solucionadas
             </div>
@@ -407,17 +418,23 @@ with col2:
             <div class="kpi-descripcion">
                 Órdenes solucionadas por cuadrillas
             </div>
+
         </div>
         """,
         unsafe_allow_html=True
     )
 
 
+# ------------------------------------------------------------
+# TARJETA 3
+# ------------------------------------------------------------
+
 with col3:
 
     st.markdown(
         f"""
         <div class="kpi-card">
+
             <div class="kpi-titulo">
                 Completadas de solucionadas
             </div>
@@ -429,17 +446,23 @@ with col3:
             <div class="kpi-descripcion">
                 CTA COMPLETO = SI
             </div>
+
         </div>
         """,
         unsafe_allow_html=True
     )
 
 
+# ------------------------------------------------------------
+# TARJETA 4
+# ------------------------------------------------------------
+
 with col4:
 
     st.markdown(
         f"""
         <div class="kpi-card">
+
             <div class="kpi-titulo">
                 Aporte a completadas
             </div>
@@ -451,6 +474,7 @@ with col4:
             <div class="kpi-descripcion">
                 Sobre {total_universo:,} completadas
             </div>
+
         </div>
         """,
         unsafe_allow_html=True
@@ -458,7 +482,7 @@ with col4:
 
 
 # ============================================================
-# VALIDACIÓN
+# RESUMEN DE CUADRILLAS
 # ============================================================
 
 st.markdown(
@@ -466,16 +490,39 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
+# ------------------------------------------------------------
+# NO COMPLETADAS
+# ------------------------------------------------------------
+
+no_completadas = (
+    len(solucionadas)
+    - len(completadas_solucionadas)
+)
+
+
+# ------------------------------------------------------------
+# TRES TARJETAS
+# ------------------------------------------------------------
+
 c1, c2, c3 = st.columns(3)
 
+
+# ------------------------------------------------------------
+# COMPLETADAS
+# ------------------------------------------------------------
 
 with c1:
 
     st.metric(
-        "Registros CUADRILLAS",
-        f"{len(cuad_filtradas):,}"
+        "Completadas",
+        f"{len(completadas_solucionadas):,}"
     )
 
+
+# ------------------------------------------------------------
+# SOLUCIONADAS
+# ------------------------------------------------------------
 
 with c2:
 
@@ -485,12 +532,11 @@ with c2:
     )
 
 
-with c3:
+# ------------------------------------------------------------
+# NO COMPLETADAS
+# ------------------------------------------------------------
 
-    no_completadas = (
-        len(solucionadas)
-        - len(completadas_solucionadas)
-    )
+with c3:
 
     st.metric(
         "No completadas",
@@ -506,6 +552,7 @@ st.markdown(
     '<div class="seccion">📈 Completadas vs solucionadas</div>',
     unsafe_allow_html=True
 )
+
 
 df_comparacion = pd.DataFrame(
     {
@@ -536,7 +583,12 @@ fig_comparacion.update_layout(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
     font=dict(color="white"),
-    margin=dict(l=20, r=20, t=20, b=20),
+    margin=dict(
+        l=20,
+        r=20,
+        t=20,
+        b=20
+    ),
     xaxis_title="",
     yaxis_title="Cantidad"
 )
@@ -566,7 +618,9 @@ st.markdown(
 if "RESULTADO_NORMALIZADO" in cuad_filtradas.columns:
 
     estados = (
-        cuad_filtradas["RESULTADO_NORMALIZADO"]
+        cuad_filtradas[
+            "RESULTADO_NORMALIZADO"
+        ]
         .replace("", "SIN RESULTADO")
         .fillna("SIN RESULTADO")
         .value_counts()
@@ -591,7 +645,12 @@ if "RESULTADO_NORMALIZADO" in cuad_filtradas.columns:
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="white"),
-        margin=dict(l=10, r=10, t=20, b=20)
+        margin=dict(
+            l=10,
+            r=10,
+            t=20,
+            b=20
+        )
     )
 
 
@@ -641,7 +700,12 @@ if "PROVEEDOR SUSPENDIO" in cuad_filtradas.columns:
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="white"),
-        margin=dict(l=20, r=20, t=20, b=20)
+        margin=dict(
+            l=20,
+            r=20,
+            t=20,
+            b=20
+        )
     )
 
 
@@ -682,14 +746,16 @@ tabla_filtrada = cuad_filtradas.copy()
 f1, f2, f3, f4, f5 = st.columns(5)
 
 
-# ------------------------------------------------------------
+# ============================================================
 # FILTRO RESULTADO
-# ------------------------------------------------------------
+# ============================================================
 
 if "RESULTADO" in tabla_filtrada.columns:
 
     opciones_resultado = ["TODOS"] + sorted(
-        tabla_filtrada["RESULTADO"]
+        tabla_filtrada[
+            "RESULTADO"
+        ]
         .fillna("SIN RESULTADO")
         .astype(str)
         .str.strip()
@@ -705,10 +771,13 @@ if "RESULTADO" in tabla_filtrada.columns:
             key="tabla_resultado"
         )
 
+
     if filtro_resultado != "TODOS":
 
         tabla_filtrada = tabla_filtrada[
-            tabla_filtrada["RESULTADO"]
+            tabla_filtrada[
+                "RESULTADO"
+            ]
             .fillna("SIN RESULTADO")
             .astype(str)
             .str.strip()
@@ -716,14 +785,16 @@ if "RESULTADO" in tabla_filtrada.columns:
         ]
 
 
-# ------------------------------------------------------------
+# ============================================================
 # FILTRO CTA COMPLETO
-# ------------------------------------------------------------
+# ============================================================
 
 if "CTA COMPLETO" in tabla_filtrada.columns:
 
     opciones_cta = ["TODOS"] + sorted(
-        tabla_filtrada["CTA COMPLETO"]
+        tabla_filtrada[
+            "CTA COMPLETO"
+        ]
         .fillna("SIN DATO")
         .astype(str)
         .str.strip()
@@ -739,10 +810,13 @@ if "CTA COMPLETO" in tabla_filtrada.columns:
             key="tabla_cta"
         )
 
+
     if filtro_cta != "TODOS":
 
         tabla_filtrada = tabla_filtrada[
-            tabla_filtrada["CTA COMPLETO"]
+            tabla_filtrada[
+                "CTA COMPLETO"
+            ]
             .fillna("SIN DATO")
             .astype(str)
             .str.strip()
@@ -750,14 +824,16 @@ if "CTA COMPLETO" in tabla_filtrada.columns:
         ]
 
 
-# ------------------------------------------------------------
+# ============================================================
 # FILTRO NODO
-# ------------------------------------------------------------
+# ============================================================
 
 if "NODO" in tabla_filtrada.columns:
 
     opciones_nodo = ["TODOS"] + sorted(
-        tabla_filtrada["NODO"]
+        tabla_filtrada[
+            "NODO"
+        ]
         .fillna("SIN NODO")
         .astype(str)
         .str.strip()
@@ -773,10 +849,13 @@ if "NODO" in tabla_filtrada.columns:
             key="tabla_nodo"
         )
 
+
     if filtro_nodo != "TODOS":
 
         tabla_filtrada = tabla_filtrada[
-            tabla_filtrada["NODO"]
+            tabla_filtrada[
+                "NODO"
+            ]
             .fillna("SIN NODO")
             .astype(str)
             .str.strip()
@@ -784,14 +863,16 @@ if "NODO" in tabla_filtrada.columns:
         ]
 
 
-# ------------------------------------------------------------
+# ============================================================
 # FILTRO TIPO VEHÍCULO
-# ------------------------------------------------------------
+# ============================================================
 
 if "TIPO VEHICULO" in tabla_filtrada.columns:
 
     opciones_vehiculo = ["TODOS"] + sorted(
-        tabla_filtrada["TIPO VEHICULO"]
+        tabla_filtrada[
+            "TIPO VEHICULO"
+        ]
         .fillna("SIN DATO")
         .astype(str)
         .str.strip()
@@ -807,10 +888,13 @@ if "TIPO VEHICULO" in tabla_filtrada.columns:
             key="tabla_vehiculo"
         )
 
+
     if filtro_vehiculo != "TODOS":
 
         tabla_filtrada = tabla_filtrada[
-            tabla_filtrada["TIPO VEHICULO"]
+            tabla_filtrada[
+                "TIPO VEHICULO"
+            ]
             .fillna("SIN DATO")
             .astype(str)
             .str.strip()
@@ -818,14 +902,16 @@ if "TIPO VEHICULO" in tabla_filtrada.columns:
         ]
 
 
-# ------------------------------------------------------------
+# ============================================================
 # FILTRO CÓDIGO
-# ------------------------------------------------------------
+# ============================================================
 
 if "CODIGO" in tabla_filtrada.columns:
 
     opciones_codigo = ["TODOS"] + sorted(
-        tabla_filtrada["CODIGO"]
+        tabla_filtrada[
+            "CODIGO"
+        ]
         .fillna("SIN CODIGO")
         .astype(str)
         .str.strip()
@@ -841,10 +927,13 @@ if "CODIGO" in tabla_filtrada.columns:
             key="tabla_codigo"
         )
 
+
     if filtro_codigo != "TODOS":
 
         tabla_filtrada = tabla_filtrada[
-            tabla_filtrada["CODIGO"]
+            tabla_filtrada[
+                "CODIGO"
+            ]
             .fillna("SIN CODIGO")
             .astype(str)
             .str.strip()
@@ -864,7 +953,8 @@ columnas_auxiliares = [
 
 
 columnas_originales = [
-    c for c in tabla_filtrada.columns
+    c
+    for c in tabla_filtrada.columns
     if c not in columnas_auxiliares
 ]
 
@@ -872,34 +962,6 @@ columnas_originales = [
 tabla_final = tabla_filtrada[
     columnas_originales
 ].copy()
-
-
-# ============================================================
-# INFORMACIÓN DE LA TABLA
-# ============================================================
-
-st.markdown(
-    f"""
-    <div style="
-        color:#b8c7d9;
-        font-size:14px;
-        margin:10px 0 10px 0;
-    ">
-        Registros mostrados:
-        <strong style="color:white;">
-            {len(tabla_final):,}
-        </strong>
-
-        &nbsp; | &nbsp;
-
-        Columnas:
-        <strong style="color:white;">
-            {len(tabla_final.columns):,}
-        </strong>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
 
 
 # ============================================================
@@ -965,3 +1027,4 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
