@@ -366,19 +366,19 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
 col1, col2, col3, col4 = st.columns(4)
 
 
-# ------------------------------------------------------------
+# ============================================================
 # TARJETA 1
-# ------------------------------------------------------------
+# ============================================================
 
 with col1:
 
     st.markdown(
         f"""
         <div class="kpi-card">
-
             <div class="kpi-titulo">
                 Órdenes completadas
             </div>
@@ -390,23 +390,21 @@ with col1:
             <div class="kpi-descripcion">
                 Universo mensual
             </div>
-
         </div>
         """,
         unsafe_allow_html=True
     )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # TARJETA 2
-# ------------------------------------------------------------
+# ============================================================
 
 with col2:
 
     st.markdown(
         f"""
         <div class="kpi-card">
-
             <div class="kpi-titulo">
                 Solucionadas
             </div>
@@ -418,23 +416,21 @@ with col2:
             <div class="kpi-descripcion">
                 Órdenes solucionadas por cuadrillas
             </div>
-
         </div>
         """,
         unsafe_allow_html=True
     )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # TARJETA 3
-# ------------------------------------------------------------
+# ============================================================
 
 with col3:
 
     st.markdown(
         f"""
         <div class="kpi-card">
-
             <div class="kpi-titulo">
                 Completadas de solucionadas
             </div>
@@ -446,23 +442,21 @@ with col3:
             <div class="kpi-descripcion">
                 CTA COMPLETO = SI
             </div>
-
         </div>
         """,
         unsafe_allow_html=True
     )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # TARJETA 4
-# ------------------------------------------------------------
+# ============================================================
 
 with col4:
 
     st.markdown(
         f"""
         <div class="kpi-card">
-
             <div class="kpi-titulo">
                 Aporte a completadas
             </div>
@@ -474,7 +468,6 @@ with col4:
             <div class="kpi-descripcion">
                 Sobre {total_universo:,} completadas
             </div>
-
         </div>
         """,
         unsafe_allow_html=True
