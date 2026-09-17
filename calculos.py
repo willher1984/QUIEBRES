@@ -16,7 +16,8 @@ ARCHIVO_GARANTIAS = DATA_DIR / "GARANTIAS 2 MESES.xlsx"
 
 # ============================================================
 # CARGAR CUADRILLAS
-# SOLO AGOSTO 2026
+# IMPORTANTE:
+# SOLO SE UTILIZA LA HOJA AGOSTO 2026
 # ============================================================
 
 def cargar_cuadrillas():
@@ -28,18 +29,20 @@ def cargar_cuadrillas():
 
     df.columns = df.columns.astype(str).str.strip()
 
-    # Convertir fechas
-    df["FECHA DE SUSPENSION"] = pd.to_datetime(
-        df["FECHA DE SUSPENSION"],
-        errors="coerce"
-    )
+    # Fechas
+    if "FECHA DE SUSPENSION" in df.columns:
+        df["FECHA DE SUSPENSION"] = pd.to_datetime(
+            df["FECHA DE SUSPENSION"],
+            errors="coerce"
+        )
 
-    df["FECHA DE EJECUCION 1"] = pd.to_datetime(
-        df["FECHA DE EJECUCION 1"],
-        errors="coerce"
-    )
+    if "FECHA DE EJECUCION 1" in df.columns:
+        df["FECHA DE EJECUCION 1"] = pd.to_datetime(
+            df["FECHA DE EJECUCION 1"],
+            errors="coerce"
+        )
 
-    # Limpiar textos importantes
+    # Textos
     columnas_texto = [
         "Service Items name",
         "PROVEEDOR SUSPENDIO",
@@ -50,7 +53,9 @@ def cargar_cuadrillas():
     ]
 
     for columna in columnas_texto:
+
         if columna in df.columns:
+
             df[columna] = (
                 df[columna]
                 .fillna("")
@@ -75,24 +80,30 @@ def cargar_suspensiones():
 
     df.columns = df.columns.astype(str).str.strip()
 
-    df["Fecha"] = pd.to_datetime(
-        df["Fecha"],
-        errors="coerce"
-    )
+    if "Fecha" in df.columns:
 
-    df["Estado"] = (
-        df["Estado"]
-        .fillna("")
-        .astype(str)
-        .str.strip()
-    )
+        df["Fecha"] = pd.to_datetime(
+            df["Fecha"],
+            errors="coerce"
+        )
 
-    df["ALIADO"] = (
-        df["ALIADO"]
-        .fillna("")
-        .astype(str)
-        .str.strip()
-    )
+    if "Estado" in df.columns:
+
+        df["Estado"] = (
+            df["Estado"]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+        )
+
+    if "ALIADO" in df.columns:
+
+        df["ALIADO"] = (
+            df["ALIADO"]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+        )
 
     return df
 
@@ -111,27 +122,35 @@ def cargar_garantias():
 
     df.columns = df.columns.astype(str).str.strip()
 
-    df["Fecha"] = pd.to_datetime(
-        df["Fecha"],
-        errors="coerce"
-    )
+    # Fechas
+    if "Fecha" in df.columns:
 
-    df["Fecha Orden Original"] = pd.to_datetime(
-        df["Fecha Orden Original"],
-        errors="coerce"
-    )
+        df["Fecha"] = pd.to_datetime(
+            df["Fecha"],
+            errors="coerce"
+        )
 
-    # Limpiar identificadores
-    for columna in [
+    if "Fecha Orden Original" in df.columns:
+
+        df["Fecha Orden Original"] = pd.to_datetime(
+            df["Fecha Orden Original"],
+            errors="coerce"
+        )
+
+    # Textos
+    columnas_texto = [
         "FIBRA+FECHA",
         "PQR+FECHA",
         "MAESTRA",
         "MAESTAR PQR",
         "Garantia",
         "Orden Original"
-    ]:
+    ]
+
+    for columna in columnas_texto:
 
         if columna in df.columns:
+
             df[columna] = (
                 df[columna]
                 .fillna("")
@@ -143,28 +162,42 @@ def cargar_garantias():
 
 
 # ============================================================
-# PREPARAR DATOS PRINCIPALES
+# PREPARAR CUADRILLAS
 # ============================================================
 
 def preparar_cuadrillas():
 
     df = cargar_cuadrillas()
 
-    # Normalizar CTA COMPLETO
+    # --------------------------------------------------------
+    # CTA COMPLETO
+    # --------------------------------------------------------
+
     df["CTA_COMPLETO_SI"] = (
         df["CTA COMPLETO"]
+        .fillna("")
+        .astype(str)
+        .str.strip()
         .str.upper()
         .eq("SI")
     )
 
-    # Normalizar resultado
+    # --------------------------------------------------------
+    # RESULTADO NORMALIZADO
+    # --------------------------------------------------------
+
     df["RESULTADO_NORMALIZADO"] = (
         df["RESULTADO"]
-        .str.upper()
+        .fillna("")
+        .astype(str)
         .str.strip()
+        .str.upper()
     )
 
-    # MDM
+    # --------------------------------------------------------
+    # MDM FIBRA
+    # --------------------------------------------------------
+
     df["MDM_FIBRA"] = (
         df["Service Items name"]
         .fillna("")
@@ -176,45 +209,97 @@ def preparar_cuadrillas():
 
 
 # ============================================================
-# COMPLETADAS DEL MES
+# OBTENER COMPLETADAS
+#
+# LAS 17.785 PROVIENEN DE SUSPENSIONES
+# Estado = COMPLETADO
 # ============================================================
 
-def obtener_completadas(suspensiones, mes, anio):
+def obtener_completadas(
+    suspensiones,
+    mes,
+    anio
+):
 
     df = suspensiones.copy()
 
+    # Filtrar año
     df = df[
-        (df["Fecha"].dt.month == mes) &
-        (df["Fecha"].dt.year == anio)
+        df["Fecha"].dt.year == anio
     ]
 
+    # Filtrar mes
     df = df[
-        df["Estado"].str.upper() == "COMPLETADO"
+        df["Fecha"].dt.month == mes
+    ]
+
+    # Estado COMPLETADO
+    df = df[
+        df["Estado"]
+        .fillna("")
+        .astype(str)
+        .str.strip()
+        .str.upper()
+        == "COMPLETADO"
     ]
 
     return df
 
 
 # ============================================================
-# SOLUCIONADAS
+# OBTENER SOLUCIONADAS
+#
+# IMPORTANTE:
+#
+# SOLUCIONADAS NO ES CTA COMPLETO = SI
+#
+# SOLUCIONADAS =
+# RESULTADO = SOLUCIONADA
+#
+# Esperado: 183
 # ============================================================
 
 def obtener_solucionadas(cuadrillas):
 
     return cuadrillas[
-        cuadrillas["CTA_COMPLETO_SI"]
+        cuadrillas["RESULTADO_NORMALIZADO"]
+        == "SOLUCIONADA"
     ].copy()
 
 
 # ============================================================
-# CRUCE DE COMPLETADAS CONTRA CUADRILLAS
+# OBTENER COMPLETADAS DE LAS SOLUCIONADAS
+#
+# De las 183 SOLUCIONADAS:
+#
+# CTA COMPLETO = SI
+#
+# Esperado: 158
 # ============================================================
 
-def cruzar_completadas(cuadrillas, completadas):
+def obtener_completadas_de_solucionadas(
+    solucionadas
+):
+
+    return solucionadas[
+        solucionadas["CTA_COMPLETO_SI"]
+    ].copy()
+
+
+# ============================================================
+# CRUCE COMPLETADAS CONTRA CUADRILLAS
+# ============================================================
+
+def cruzar_completadas(
+    cuadrillas,
+    completadas
+):
 
     izquierda = completadas.copy()
+
     derecha = cuadrillas.copy()
 
+    # Orden de suspensiones
     izquierda["ORDEN"] = (
         izquierda["orden"]
         .fillna("")
@@ -222,6 +307,7 @@ def cruzar_completadas(cuadrillas, completadas):
         .str.strip()
     )
 
+    # Orden de cuadrillas
     derecha["ORDEN"] = (
         derecha["ORDEN DE TRABAJO"]
         .fillna("")
@@ -233,68 +319,118 @@ def cruzar_completadas(cuadrillas, completadas):
         derecha,
         on="ORDEN",
         how="left",
-        suffixes=("_SUSP", "_CUAD")
+        suffixes=(
+            "_SUSP",
+            "_CUAD"
+        )
     )
 
     return resultado
 
 
 # ============================================================
-# GARANTIAS EN VENTANA DE 60 DIAS
+# GARANTIAS
+#
+# CRUCE:
+#
+# CUADRILLAS Service Items name
+#             ↓
+# GARANTIAS MAESTRA
+#
+# Ventana:
+# FECHA EJECUCION + 60 DIAS
 # ============================================================
 
-def buscar_garantias(cuadrillas, garantias):
+def buscar_garantias(
+    cuadrillas,
+    garantias
+):
 
     base = cuadrillas.copy()
+
     gar = garantias.copy()
 
-    # Solo órdenes con fecha de ejecución
+    # --------------------------------------------------------
+    # Solo registros con fecha de ejecución
+    # --------------------------------------------------------
+
     base = base[
         base["FECHA DE EJECUCION 1"].notna()
     ].copy()
 
+    # --------------------------------------------------------
+    # Inicio garantía
+    # --------------------------------------------------------
+
     base["FECHA_INICIO_GARANTIA"] = (
         base["FECHA DE EJECUCION 1"]
     )
+
+    # --------------------------------------------------------
+    # Fin garantía
+    # --------------------------------------------------------
 
     base["FECHA_FIN_GARANTIA"] = (
         base["FECHA DE EJECUCION 1"]
         + pd.Timedelta(days=60)
     )
 
-    # Cruce por MDM
+    # --------------------------------------------------------
+    # Normalizar MDM
+    # --------------------------------------------------------
+
     base["MDM_FIBRA"] = (
         base["MDM_FIBRA"]
+        .fillna("")
         .astype(str)
         .str.strip()
+        .str.upper()
     )
+
+    # --------------------------------------------------------
+    # Normalizar MAESTRA
+    # --------------------------------------------------------
 
     gar["MAESTRA"] = (
         gar["MAESTRA"]
+        .fillna("")
         .astype(str)
         .str.strip()
+        .str.upper()
     )
+
+    # --------------------------------------------------------
+    # Cruce
+    # --------------------------------------------------------
 
     resultado = base.merge(
         gar,
         left_on="MDM_FIBRA",
         right_on="MAESTRA",
         how="left",
-        suffixes=("", "_GAR")
+        suffixes=(
+            "",
+            "_GAR"
+        )
     )
 
-    # Garantía dentro de los 60 días
+    # --------------------------------------------------------
+    # Validar ventana de 60 días
+    # --------------------------------------------------------
+
     resultado["TIENE_GARANTIA"] = (
         resultado["Fecha"].notna()
         &
         (
             resultado["Fecha"]
-            >= resultado["FECHA_INICIO_GARANTIA"]
+            >=
+            resultado["FECHA_INICIO_GARANTIA"]
         )
         &
         (
             resultado["Fecha"]
-            <= resultado["FECHA_FIN_GARANTIA"]
+            <=
+            resultado["FECHA_FIN_GARANTIA"]
         )
     )
 
@@ -302,27 +438,62 @@ def buscar_garantias(cuadrillas, garantias):
 
 
 # ============================================================
-# RESUMEN GENERAL
+# RESUMEN
 # ============================================================
 
-def generar_resumen(cuadrillas, completadas):
+def generar_resumen(
+    cuadrillas,
+    completadas
+):
 
-    total_completadas = len(completadas)
-
-    total_solucionadas = int(
-        cuadrillas["CTA_COMPLETO_SI"].sum()
+    # Universo
+    total_completadas = len(
+        completadas
     )
 
+    # Solucionadas
+    solucionadas = obtener_solucionadas(
+        cuadrillas
+    )
+
+    total_solucionadas = len(
+        solucionadas
+    )
+
+    # Completadas de solucionadas
+    completadas_solucionadas = (
+        obtener_completadas_de_solucionadas(
+            solucionadas
+        )
+    )
+
+    total_completadas_solucionadas = len(
+        completadas_solucionadas
+    )
+
+    # Porcentaje
     if total_completadas > 0:
-        porcentaje_solucion = (
-            total_solucionadas /
+
+        porcentaje = (
+            total_completadas_solucionadas
+            /
             total_completadas
         ) * 100
+
     else:
-        porcentaje_solucion = 0
+
+        porcentaje = 0
 
     return {
+
         "completadas": total_completadas,
+
         "solucionadas": total_solucionadas,
-        "porcentaje_solucion": porcentaje_solucion
+
+        "completadas_de_solucionadas":
+            total_completadas_solucionadas,
+
+        "porcentaje_solucion":
+            porcentaje
+
     }
