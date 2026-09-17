@@ -2,16 +2,15 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
+from io import BytesIO
 
 from calculos import (
     cargar_cuadrillas,
     cargar_suspensiones,
-    cargar_garantias,
     preparar_cuadrillas,
     obtener_completadas,
     obtener_solucionadas,
     obtener_completadas_de_solucionadas,
-    buscar_garantias,
 )
 
 
@@ -239,7 +238,6 @@ try:
 
     cuadrillas = cargar_cuadrillas()
     suspensiones = cargar_suspensiones()
-    garantias = cargar_garantias()
 
 except Exception as e:
 
@@ -547,6 +545,7 @@ with c2:
 
 
 with c3:
+
     no_completadas = (
         len(solucionadas)
         - len(completadas_solucionadas)
@@ -718,107 +717,6 @@ if "PROVEEDOR SUSPENDIO" in cuad_filtradas.columns:
 
 
 # ============================================================
-# GARANTÍAS
-# ============================================================
-
-st.markdown(
-    '<div class="seccion">🛡️ Análisis de garantías · 60 días</div>',
-    unsafe_allow_html=True
-)
-
-
-try:
-
-    datos_garantia = buscar_garantias(
-        completadas_solucionadas,
-        garantias
-    )
-
-except Exception as e:
-
-    st.warning(
-        f"No fue posible calcular las garantías: {e}"
-    )
-
-    datos_garantia = pd.DataFrame()
-
-
-if not datos_garantia.empty:
-
-    total_con_garantia = int(
-        datos_garantia["TIENE_GARANTIA"]
-        .fillna(False)
-        .sum()
-    )
-
-
-    total_sin_garantia = (
-        len(datos_garantia)
-        - total_con_garantia
-    )
-
-
-    porcentaje_garantia = (
-        total_con_garantia
-        / len(datos_garantia)
-        * 100
-        if len(datos_garantia) > 0
-        else 0
-    )
-
-
-    g1, g2, g3 = st.columns(3)
-
-
-    with g1:
-
-        st.metric(
-            "Con garantía",
-            f"{total_con_garantia:,}"
-        )
-
-
-    with g2:
-
-        st.metric(
-            "Sin garantía",
-            f"{total_sin_garantia:,}"
-        )
-
-
-    with g3:
-
-        st.metric(
-            "% con garantía",
-            f"{porcentaje_garantia:.2f}%"
-        )
-
-
-    columnas_garantia = [
-        "MDM_FIBRA",
-        "FECHA DE EJECUCION 1",
-        "Fecha",
-        "MAESTRA",
-        "MAESTAR PQR",
-        "Garantia",
-        "Orden Original"
-    ]
-
-
-    columnas_disponibles = [
-        c for c in columnas_garantia
-        if c in datos_garantia.columns
-    ]
-
-
-    st.dataframe(
-        datos_garantia[columnas_disponibles],
-        width="stretch",
-        hide_index=True
-    )
-
-
-# ============================================================
 # DETALLE DE SOLUCIONADAS
 # ============================================================
 
@@ -830,29 +728,300 @@ st.markdown(
 
 if not solucionadas.empty:
 
-    columnas_detalle = [
-        "ORDEN DE TRABAJO",
-        "Service Items name",
-        "RESULTADO",
-        "CTA COMPLETO",
-        "PROVEEDOR SUSPENDIO",
-        "TECNICO",
-        "FECHA DE SUSPENSION",
-        "FECHA DE EJECUCION 1"
+    # ========================================================
+    # FILTROS DEL DETALLE
+    # ========================================================
+
+    st.markdown("#### 🔎 Filtrar detalle de órdenes")
+
+    f1, f2, f3, f4, f5 = st.columns(5)
+
+
+    detalle_filtrado = solucionadas.copy()
+
+
+    # --------------------------------------------------------
+    # PROVEEDOR
+    # --------------------------------------------------------
+
+    if "PROVEEDOR SUSPENDIO" in detalle_filtrado.columns:
+
+        opciones_proveedor_detalle = ["TODOS"] + sorted(
+            detalle_filtrado[
+                "PROVEEDOR SUSPENDIO"
+            ]
+            .fillna("SIN PROVEEDOR")
+            .astype(str)
+            .str.strip()
+            .unique()
+            .tolist()
+        )
+
+        with f1:
+
+            filtro_proveedor = st.selectbox(
+                "Proveedor",
+                opciones_proveedor_detalle,
+                key="detalle_proveedor"
+            )
+
+        if filtro_proveedor != "TODOS":
+
+            detalle_filtrado = detalle_filtrado[
+                detalle_filtrado[
+                    "PROVEEDOR SUSPENDIO"
+                ]
+                .fillna("SIN PROVEEDOR")
+                .astype(str)
+                .str.strip()
+                == filtro_proveedor
+            ]
+
+
+    # --------------------------------------------------------
+    # TECNICO
+    # --------------------------------------------------------
+
+    if "TECNICO" in detalle_filtrado.columns:
+
+        opciones_tecnico_detalle = ["TODOS"] + sorted(
+            detalle_filtrado[
+                "TECNICO"
+            ]
+            .fillna("SIN TECNICO")
+            .astype(str)
+            .str.strip()
+            .unique()
+            .tolist()
+        )
+
+        with f2:
+
+            filtro_tecnico = st.selectbox(
+                "Técnico",
+                opciones_tecnico_detalle,
+                key="detalle_tecnico"
+            )
+
+        if filtro_tecnico != "TODOS":
+
+            detalle_filtrado = detalle_filtrado[
+                detalle_filtrado[
+                    "TECNICO"
+                ]
+                .fillna("SIN TECNICO")
+                .astype(str)
+                .str.strip()
+                == filtro_tecnico
+            ]
+
+
+    # --------------------------------------------------------
+    # CTA COMPLETO
+    # --------------------------------------------------------
+
+    if "CTA COMPLETO" in detalle_filtrado.columns:
+
+        opciones_cta = ["TODOS"] + sorted(
+            detalle_filtrado[
+                "CTA COMPLETO"
+            ]
+            .fillna("SIN DATO")
+            .astype(str)
+            .str.strip()
+            .unique()
+            .tolist()
+        )
+
+        with f3:
+
+            filtro_cta = st.selectbox(
+                "CTA COMPLETO",
+                opciones_cta,
+                key="detalle_cta"
+            )
+
+        if filtro_cta != "TODOS":
+
+            detalle_filtrado = detalle_filtrado[
+                detalle_filtrado[
+                    "CTA COMPLETO"
+                ]
+                .fillna("SIN DATO")
+                .astype(str)
+                .str.strip()
+                == filtro_cta
+            ]
+
+
+    # --------------------------------------------------------
+    # NODO
+    # --------------------------------------------------------
+
+    if "NODO" in detalle_filtrado.columns:
+
+        opciones_nodo = ["TODOS"] + sorted(
+            detalle_filtrado[
+                "NODO"
+            ]
+            .fillna("SIN NODO")
+            .astype(str)
+            .str.strip()
+            .unique()
+            .tolist()
+        )
+
+        with f4:
+
+            filtro_nodo = st.selectbox(
+                "Nodo",
+                opciones_nodo,
+                key="detalle_nodo"
+            )
+
+        if filtro_nodo != "TODOS":
+
+            detalle_filtrado = detalle_filtrado[
+                detalle_filtrado[
+                    "NODO"
+                ]
+                .fillna("SIN NODO")
+                .astype(str)
+                .str.strip()
+                == filtro_nodo
+            ]
+
+
+    # --------------------------------------------------------
+    # TIPO VEHICULO
+    # --------------------------------------------------------
+
+    if "TIPO VEHICULO" in detalle_filtrado.columns:
+
+        opciones_vehiculo = ["TODOS"] + sorted(
+            detalle_filtrado[
+                "TIPO VEHICULO"
+            ]
+            .fillna("SIN DATO")
+            .astype(str)
+            .str.strip()
+            .unique()
+            .tolist()
+        )
+
+        with f5:
+
+            filtro_vehiculo = st.selectbox(
+                "Tipo vehículo",
+                opciones_vehiculo,
+                key="detalle_vehiculo"
+            )
+
+        if filtro_vehiculo != "TODOS":
+
+            detalle_filtrado = detalle_filtrado[
+                detalle_filtrado[
+                    "TIPO VEHICULO"
+                ]
+                .fillna("SIN DATO")
+                .astype(str)
+                .str.strip()
+                == filtro_vehiculo
+            ]
+
+
+    # ========================================================
+    # INFORMACIÓN DE LA TABLA
+    # ========================================================
+
+    st.markdown(
+        f"""
+        <div style="
+            color:#b8c7d9;
+            font-size:14px;
+            margin:10px 0 10px 0;
+        ">
+            Registros encontrados: 
+            <strong style="color:white;">
+                {len(detalle_filtrado):,}
+            </strong>
+            &nbsp; | &nbsp;
+            Columnas:
+            <strong style="color:white;">
+                {len(detalle_filtrado.columns):,}
+            </strong>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+    # ========================================================
+    # TODAS LAS COLUMNAS ORIGINALES
+    # ========================================================
+
+    columnas_auxiliares = [
+        "CTA_COMPLETO_SI",
+        "RESULTADO_NORMALIZADO",
+        "MDM_FIBRA"
     ]
 
 
-    columnas_detalle = [
-        c for c in columnas_detalle
-        if c in solucionadas.columns
+    columnas_originales = [
+        c for c in detalle_filtrado.columns
+        if c not in columnas_auxiliares
     ]
 
+
+    tabla_detalle = detalle_filtrado[
+        columnas_originales
+    ].copy()
+
+
+    # ========================================================
+    # TABLA COMPLETA
+    # ========================================================
 
     st.dataframe(
-        solucionadas[columnas_detalle],
+        tabla_detalle,
         width="stretch",
+        height=600,
         hide_index=True
     )
+
+
+    # ========================================================
+    # DESCARGA EXCEL
+    # ========================================================
+
+    buffer_excel = BytesIO()
+
+    with pd.ExcelWriter(
+        buffer_excel,
+        engine="openpyxl"
+    ) as writer:
+
+        tabla_detalle.to_excel(
+            writer,
+            index=False,
+            sheet_name="ORDENES SOLUCIONADAS"
+        )
+
+
+    buffer_excel.seek(0)
+
+
+    st.download_button(
+        label="📥 Descargar órdenes solucionadas",
+        data=buffer_excel,
+        file_name="ORDENES_SOLUCIONADAS_AGOSTO_2026.xlsx",
+        mime=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        ),
+        width="stretch"
+    )
+
 
 else:
 
